@@ -18,7 +18,6 @@ internal class TaskLoop
        
             body = state =>
             {
-          
                 switch (state)
             {
                 case 0:
