@@ -6,9 +6,7 @@ internal class TaskLoop
     public Action? A { get; set; }
     public int Max { get; set; }
     public Task Task { get; set; }
-
     private static TaskCompletionSource tcs;
-
 
     public Task Run()
     {
