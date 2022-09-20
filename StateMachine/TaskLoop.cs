@@ -1,7 +1,7 @@
 ﻿
 using System.Runtime.CompilerServices;
 
-internal class TaskLoop : IAsyncStateMachine
+internal class TaskLoop 
 {
     public Action? A { get; set; }
     public int Max { get; set; }
@@ -9,56 +9,39 @@ internal class TaskLoop : IAsyncStateMachine
 
     private static TaskCompletionSource tcs;
 
-    public Int32 m_state;
+
     public Task Run()
     {
-
-        tcs = new TaskCompletionSource();
-        var awaiterType1 = tcs.Task.GetAwaiter();
-
-        if (!awaiterType1.IsCompleted)
-        {
-            m_state = 0;
-            tcs.Task.ContinueWith(t => MoveNext());   // При завершении Task ContinueWith вызывает MoveNext
-
-        }
-
-        tcs.SetResult();
-        Task= tcs.Task;
-        return tcs.Task;
-    }
-
-    public void MoveNext()
-    {
         int state = 0;
-        int num = state;
-        try
-        {
-            while (state < Max)
+        tcs = new TaskCompletionSource();
+        Action<int> body = null;
+       
+            body = state =>
             {
-                A.Invoke();
-                state++;
-            }            
+          
+                switch (state)
+            {
+                case 0:
+                    Task = tcs.Task;
+                    tcs.Task.ContinueWith(t => body(1));
+                    break;
+                case 1:
+                    while (state <= Max)
+                    {
+                    A.Invoke();
+                      state++;
+                   }
+                    Task = tcs.Task;
+                    tcs.Task.ContinueWith(t => body(2));
+                    break;
+                case 2:
+                    Task = tcs.Task;
+                    break;
         }
-        catch (AggregateException exception)
-        {
-            foreach (Exception ex in exception.InnerExceptions)
-            Console.WriteLine(exception.InnerException);
-            return;
-        }
-           
-    }
-    void IAsyncStateMachine.MoveNext()
-    {
-        MoveNext();
-    }
-
-    void IAsyncStateMachine.SetStateMachine(IAsyncStateMachine stateMachine)
-    {
-       SetStateMachine(stateMachine);
-    }
-
-    private void SetStateMachine(IAsyncStateMachine stateMachine)
-    {
+        };
+        body(0);
+        tcs.SetResult();
+       
+        return tcs.Task;
     }
 }
